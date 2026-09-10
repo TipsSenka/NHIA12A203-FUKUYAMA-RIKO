@@ -1,12 +1,78 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>frontend</title>
+    <title>Senka API Console</title>
+    <style>
+        :root {
+            color-scheme: light;
+            font-family: "Yu Gothic", "Hiragino Kaku Gothic ProN", sans-serif;
+            background: #f4f7fb;
+            color: #162236;
+        }
+        body { margin: 0; }
+        main { max-width: 760px; margin: 0 auto; padding: 48px 20px; }
+        h1 { margin-bottom: 8px; }
+        .lead { color: #526176; }
+        .panel { margin-top: 28px; padding: 24px; background: #fff; border: 1px solid #dce4ef; border-radius: 10px; box-shadow: 0 8px 24px #16223612; }
+        label { display: block; margin-bottom: 8px; font-weight: 700; }
+        input { box-sizing: border-box; width: 100%; padding: 11px 12px; border: 1px solid #b9c6d8; border-radius: 6px; font: inherit; }
+        .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+        button { padding: 10px 14px; border: 0; border-radius: 6px; background: #1769aa; color: #fff; font: inherit; cursor: pointer; }
+        button:hover { background: #0f5389; }
+        pre { min-height: 120px; margin: 20px 0 0; padding: 16px; overflow: auto; background: #101a29; color: #d9e7f5; border-radius: 6px; white-space: pre-wrap; }
+        .status { margin-top: 12px; color: #526176; }
+    </style>
 </head>
 <body>
-    <h1>Hello, World!</h1>
+    <main>
+        <h1>Senka API Console</h1>
+        <p class="lead">Cloudflare Workerの公開APIを確認します。</p>
+        <section class="panel">
+            <label for="worker-url">WorkerベースURL</label>
+            <input id="worker-url" type="url" value="https://senka-api.takahashi-masa.workers.dev" autocomplete="url">
+            <div class="actions">
+                <button type="button" data-path="/api">API状態</button>
+                <button type="button" data-path="/api/course">コース</button>
+                <button type="button" data-path="/api/fortune">占い</button>
+                <button type="button" data-path="/api/events">イベント</button>
+                <button type="button" id="hello-button">Hello</button>
+            </div>
+            <p class="status" id="status" aria-live="polite">未実行</p>
+            <pre id="result">ここにAPIレスポンスを表示します。</pre>
+        </section>
+    </main>
+    <script>
+        const baseUrlInput = document.querySelector("#worker-url");
+        const status = document.querySelector("#status");
+        const result = document.querySelector("#result");
 
+        async function request(path) {
+            const baseUrl = baseUrlInput.value.trim().replace(/\/+$/, "");
+            if (!/^https?:\/\//i.test(baseUrl)) {
+                status.textContent = "Worker URLを確認してください。";
+                return;
+            }
+            status.textContent = "通信中...";
+            try {
+                const response = await fetch(`${baseUrl}${path}`);
+                const body = await response.json();
+                status.textContent = `${response.status} ${response.statusText}`;
+                result.textContent = JSON.stringify(body, null, 2);
+            } catch (error) {
+                status.textContent = "通信に失敗しました。URLとCORS設定を確認してください。";
+                result.textContent = "通信エラー";
+            }
+        }
+
+        document.querySelectorAll("[data-path]").forEach((button) => {
+            button.addEventListener("click", () => request(button.dataset.path));
+        });
+        document.querySelector("#hello-button").addEventListener("click", () => {
+            const name = window.prompt("名前を入力してください", "山田");
+            if (name !== null) request(`/api/hello?name=${encodeURIComponent(name)}`);
+        });
+    </script>
 </body>
 </html>
