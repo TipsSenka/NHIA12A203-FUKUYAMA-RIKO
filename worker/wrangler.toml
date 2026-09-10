@@ -4,4 +4,4 @@ compatibility_date = "2026-09-10"
 
 [vars]
 # Pagesの本番URLへ変更してからデプロイしてください。複数指定はカンマ区切りです。
-ALLOWED_ORIGINS = "https://nhia12a203-fukuyama-riko-front.fr1015.workers.dev/"
+ALLOWED_ORIGINS = "https://nhia12a203-fukuyama-riko-front.fr1015.workers.dev"
